@@ -1,5 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
+import { Http, RequestOptions, Headers } from '@angular/http';
 import * as RecordRTC from 'recordrtc';
+import * as Dropbox from 'dropbox';
+
+const ACCESS_TOKEN = "TgMlERqZcOAAAAAAAAAAIKm0VIZKVNm-txpvtd_Rq5C283tlb2V5p_6ORggGL49F";
 
 @Component({
   selector: 'app-root',
@@ -10,6 +14,11 @@ export class AppComponent {
   @ViewChild('video') video: any
   private stream: any;
   private recordRTC: RecordRTC;
+  private box: Dropbox;
+
+  constructor(http: Http) {
+    this.box = new Dropbox({ accessToken: ACCESS_TOKEN })
+  }
 
   public ngAfterViewInit(): void {
     let video: HTMLVideoElement = this.video.nativeElement;
@@ -20,12 +29,7 @@ export class AppComponent {
 
   public startRecording(): void {
     let mediaConstraints = {
-      video: {
-        mandatory: {
-          minWidth: 1280,
-          minHeight: 720
-        }
-      }, audio: true
+      audio: true
     };
     navigator.mediaDevices
       .getUserMedia(mediaConstraints)
@@ -64,9 +68,13 @@ export class AppComponent {
     this.toggleControls();
   }
 
-  public download(): void {
+  public upload(): void {
     var recordedBlob = this.recordRTC.getBlob();
-    this.recordRTC.getDataURL((dataURL) => { console.log(recordedBlob) });
-    /*this.recordRTC.save('video.webm');*/
+    let name = `video_${Math.random().toString().slice(3)}.webm`;
+    this.box.filesUpload({ path: '/' + name, contents: recordedBlob })
+      .then()
+      .catch((error) => {
+        console.error(error);
+      });
   }
 }
