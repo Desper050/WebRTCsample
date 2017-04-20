@@ -29,6 +29,12 @@ export class AppComponent {
 
   public startRecording(): void {
     let mediaConstraints = {
+      video: {
+        mandatory: {
+          minWidth: 1280,
+          minHeight: 720
+        }
+      },
       audio: true
     };
     navigator.mediaDevices
