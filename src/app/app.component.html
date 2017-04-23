@@ -1,8 +1,11 @@
 <div>
-  <video #video id="camera-preview"></video>
+  <video #video></video>
   <div>
     <button (click)="startRecording()">Start Recording</button>
     <button (click)="stopRecording()">Stop Recording</button>
     <button (click)="upload()">Upload to storage</button>
+  </div>
+  <div>
+    <input #tokeninput type="text" placeholder="Dropbox api key">
   </div>
 </div>

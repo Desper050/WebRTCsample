@@ -1,9 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
-import { Http, RequestOptions, Headers } from '@angular/http';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import * as RecordRTC from 'recordrtc';
 import * as Dropbox from 'dropbox';
-
-const ACCESS_TOKEN = "TgMlERqZcOAAAAAAAAAAIKm0VIZKVNm-txpvtd_Rq5C283tlb2V5p_6ORggGL49F";
 
 @Component({
   selector: 'app-root',
@@ -11,20 +8,24 @@ const ACCESS_TOKEN = "TgMlERqZcOAAAAAAAAAAIKm0VIZKVNm-txpvtd_Rq5C283tlb2V5p_6ORg
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  @ViewChild('video') video: any
+  @ViewChild('video') video: ElementRef;
+  @ViewChild('tokeninput') token: ElementRef;
+
   private stream: any;
   private recordRTC: RecordRTC;
-  private box: Dropbox;
-
-  constructor(http: Http) {
-    this.box = new Dropbox({ accessToken: ACCESS_TOKEN })
-  }
 
   public ngAfterViewInit(): void {
     let video: HTMLVideoElement = this.video.nativeElement;
     video.muted = false;
     video.controls = true;
     video.autoplay = false;
+  }
+
+  private toggleControls(): void {
+    let video: HTMLVideoElement = this.video.nativeElement;
+    video.muted = !video.muted;
+    video.controls = !video.controls;
+    video.autoplay = !video.autoplay;
   }
 
   public startRecording(): void {
@@ -45,7 +46,7 @@ export class AppComponent {
   private successCallback(stream: MediaStream) {
     var options = {
       mimeType: 'video/webm',
-      bitsPerSecond: 128000
+      bitsPerSecond: 750000
     };
     this.stream = stream;
     this.recordRTC = RecordRTC(stream, options);
@@ -53,13 +54,6 @@ export class AppComponent {
     let video: HTMLVideoElement = this.video.nativeElement;
     video.src = window.URL.createObjectURL(stream);
     this.toggleControls();
-  }
-
-  private toggleControls(): void {
-    let video: HTMLVideoElement = this.video.nativeElement;
-    video.muted = !video.muted;
-    video.controls = !video.controls;
-    video.autoplay = !video.autoplay;
   }
 
   public stopRecording(): void {
@@ -74,13 +68,22 @@ export class AppComponent {
     this.toggleControls();
   }
 
-  public upload(): void {
-    var recordedBlob = this.recordRTC.getBlob();
-    let name = `video_${Math.random().toString().slice(3)}.webm`;
-    this.box.filesUpload({ path: '/' + name, contents: recordedBlob })
-      .then()
-      .catch((error) => {
-        console.error(error);
-      });
+  public upload(): void {    
+    let key = this.token.nativeElement.value;
+    if (key) {      
+    let box = new Dropbox({ accessToken: key })
+      var recordedBlob = this.recordRTC.getBlob();
+      let name = new Date().toUTCString() + '.webm';
+      box.filesUpload({ path: '/' + name, contents: recordedBlob })
+        .then(
+        alert("Video uploaded.")
+        )
+        .catch((error) => {
+          alert(error);
+        });
+    }
+    else {
+      alert("Enter dropbox api acces key!");
+    }
   }
 }
